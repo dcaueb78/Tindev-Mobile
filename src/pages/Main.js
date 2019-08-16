@@ -1,41 +1,89 @@
-import React from 'react';
-import { SafeAreaView, Image, StyleSheet, View, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-community/async-storage';
+import { SafeAreaView, Image, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 
-import logo from '../assets/logo.png'
+import api from '../services/api'
 
-export default function Main(){
-  return <SafeAreaView style={styles.container}>
-    <Image source={logo} />
+import logo from '../assets/logo.png';
+import like from '../assets/like.png';
+import dislike from '../assets/dislike.png';
 
-    <View style={styles.cardsContainer}>
-      <View style={styles.card}>
-        <Image style={styles.avatar} source={{ uri: 'https://avatars3.githubusercontent.com/u/37030530?v=4'}}/>
-        <View style={styles.footer}>
-          <Text style={styles.name}>Cauê Kotarski</Text>
-          <Text style={styles.bio}>We are working to build community through open source technology. NB: members must have two-factor auth.</Text>
-        </View>
+export default function Main({ navigation }) {
+  const id = navigation.getParam('user');
+  const [users, setUsers] = useState([]);
+
+
+  useEffect(() => {
+    async function loadUsers() {
+      const response = await api.get('/devs', {
+        headers: {
+          user: id,
+        }
+      })
+      setUsers(response.data);
+    }
+    loadUsers();
+  }, [id])
+
+  async function handleLike() {
+    const [user, ...rest] = users;
+
+    await api.post(`/devs/${user._id}/likes`, null, {
+      headers: { user: id },
+    })
+
+    setUsers(rest);
+  }
+
+  async function handleDislike() {
+    const [user, ...rest] = users;
+    await api.post(`/devs/${user._id}/dislikes`, null, {
+      headers: { user: id },
+    })
+
+    setUsers(rest);
+  }
+
+  async function handleLogout() {
+    await AsyncStorage.clear();
+
+    navigation.navigate('Login');
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity onPress={handleLogout}>
+        <Image styles={styles.logo} source={logo} />
+      </TouchableOpacity>
+      <View style={styles.cardsContainer}>
+        {users.length === 0
+          ? <Text style={styles.empty}>Acabou :(</Text>
+          : (
+            users.map((user, index) => (
+              <View key={user._id} style={[styles.card, { zIndex: users.length - index }]}>
+                <Image style={styles.avatar} source={{ uri: user.avatar }} />
+                <View style={styles.footer}>
+                  <Text style={styles.name}>{user.name}</Text>
+                  <Text style={styles.bio} numberOfLines={3} >{user.bio}</Text>
+                </View>
+              </View>
+            ))
+          )}
       </View>
-      
-      <View style={styles.card}>
-        <Image style={styles.avatar} source={{ uri: 'https://avatars3.githubusercontent.com/u/37030530?v=4'}}/>
-        <View style={styles.footer}>
-          <Text style={styles.name}>Cauê Kotarski</Text>
-          <Text style={styles.bio}>We are working to build community through open source technology. NB: members must have two-factor auth.</Text>
+
+
+      {users.length > 0 && (
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity style={styles.button} onPress={handleDislike}>
+            <Image source={dislike} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleLike}>
+            <Image source={like} />
+          </TouchableOpacity>
         </View>
-      </View>
-
-      <View style={styles.card}>
-        <Image style={styles.avatar} source={{ uri: 'https://avatars3.githubusercontent.com/u/37030530?v=4'}}/>
-        <View style={styles.footer}>
-          <Text style={styles.name}>Cauê Kotarski</Text>
-          <Text style={styles.bio}>We are working to build community through open source technology. NB: members must have two-factor auth.</Text>
-        </View>
-      </View>
-    </View>
-
-
-    <View/>
-  </SafeAreaView>
+      )}
+    </SafeAreaView>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -46,11 +94,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
 
+  logo: {
+    marginTop: 30,
+  },
+
+  empty: {
+    alignSelf: 'center',
+    color: '#999',
+    fontSize: 24,
+    fontWeight: 'bold'
+  },
+
   cardsContainer: {
     flex: 1,
     alignSelf: 'stretch',
     justifyContent: 'center',
-    maxHeight: 500,
+    maxHeight: 700,
   },
 
   card: {
@@ -69,5 +128,48 @@ const styles = StyleSheet.create({
   avatar: {
     flex: 1,
     height: 300,
-  }
+  },
+
+  footer: {
+    backgroundColor: '#FFF',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
+
+  name: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333'
+  },
+
+  bio: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 5,
+    lineHeight: 18
+  },
+
+  buttonsContainer: {
+    flexDirection: 'row',
+    marginBottom: 30,
+  },
+
+  button: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#FFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    }
+  },
+
 })
