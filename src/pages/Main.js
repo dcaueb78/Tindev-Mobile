@@ -13,7 +13,7 @@ import itsamatch from '../assets/itsamatch.png';
 export default function Main({ navigation }) {
   const id = navigation.getParam('user');
   const [users, setUsers] = useState([]);
-  const[ matchDev, setMatchDev] = useState([true]);
+  const[ matchDev, setMatchDev] = useState(false);
 
   useEffect(() => {
     async function loadUsers() {
@@ -97,11 +97,11 @@ export default function Main({ navigation }) {
 
       { matchDev && (
         <View style={styles.matchContainer}>
-          <Image source={itsamatch} />
-          <Image style={styles.matchAvatar} source={{uri: 'https://avatars0.githubusercontent.com/u/37030530?s=460&v=4'}}/>
+          <Image style={styles.matchImage} source={itsamatch} />
+          <Image style={styles.matchAvatar} source={{uri: matchDev.avatar}}/>
 
-          <Text style={styles.matchName}>Cauê</Text>
-          <Text style={styles.matchBio}>ASDUDSUDJISADYADHUSDhaydhuasdsYDGHFUCDF</Text>
+          <Text style={styles.matchName}>{matchDev.name}</Text>
+          <Text style={styles.matchBio}>{matchDev.bio}</Text>
 
           <TouchableOpacity onPress={() => setMatchDev(null)}>
             <Text style ={styles.closeMatch}>Fechar</Text>
@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
   },
 
   cardsContainer: {
+    zIndex: 3,
     flex: 1,
     alignSelf: 'stretch',
     justifyContent: 'center',
@@ -176,6 +177,7 @@ const styles = StyleSheet.create({
   },
 
   buttonsContainer: {
+    zIndex: 3,
     flexDirection: 'row',
     marginBottom: 30,
   },
@@ -197,5 +199,50 @@ const styles = StyleSheet.create({
       height: 2,
     }
   },
+
+  matchContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5,
+  },
+
+  matchImage: {
+    height: 60,
+    resizeMode: 'contain',
+  },
+
+  matchAvatar: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 5,
+    borderColor: '#FFF',
+    marginVertical: 30,
+  },
+
+  matchName: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+
+  matchBio: {
+    marginTop: 10,
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 24,
+    textAlign: 'center',
+    paddingHorizontal: 30,
+  },
+
+  closeMatch: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    marginTop: 30,
+    fontWeight: 'bold'
+  }
 
 })
